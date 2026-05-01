@@ -1,18 +1,3 @@
-const express = require("express");
-const fetch = require("node-fetch");
-const cors = require("cors");
-
-const app = express();
-
-app.use(cors());
-app.use(express.json());
-
-// test serveur
-app.get("/", (req, res) => {
-  res.send("Serveur OK ✅");
-});
-
-// route paiement
 app.post("/payer", async (req, res) => {
   const { phone, amount } = req.body;
 
@@ -20,28 +5,27 @@ app.post("/payer", async (req, res) => {
     const response = await fetch("https://api.maishapay.online/api/payment", {
       method: "POST",
       headers: {
-        "Authorization": "Bearer " + process.env.API_KEY,
+        "Authorization": "Bearer " + process.env.MAISHAPAY_SECRET_KEY,
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        amount: amount,
-        phone: phone,
-        currency: "XAF"
+        amount: Number(amount),
+        phone: phone.replace("+", ""),
+        currency: "XAF",
+        description: "Paiement client Business Congo"
       })
     });
 
     const data = await response.json();
 
-    res.json({
-      message: "Paiement envoyé 📱",
-      data: data
-    });
+    console.log("Réponse API:", data); // 👈 IMPORTANT
+
+    res.json(data);
 
   } catch (err) {
+    console.error(err);
     res.status(500).json({
       message: "Erreur serveur ❌"
     });
   }
 });
-
-app.listen(3000, () => console.log("Serveur lancé 🚀"));
